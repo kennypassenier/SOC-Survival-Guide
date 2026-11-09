@@ -11,6 +11,12 @@ Check the configuration of the network interface
 ```bash
 cat /etc/network/interfaces
 ```
+
+Confirm the gateway
+```bash
+netstat -rn
+```
+
 ## ARP
 
 ### Display all cached ARP entries.
@@ -32,7 +38,7 @@ D2 responds directly to the D1 IP with it's MAC address.
 D2 then sends a similar ARP request to D1 (Not broadcast) because it expects D1 to send more traffic.
 D1 responds with its MAC address.
 
-### Example of a slightly more complex ARP request
+### Example of a slightly more complex ARP request (between two subnets)
 
 Device 1 and Device 3 are on a different subnet. 
 The subnets are connected through a mutual router device. 
