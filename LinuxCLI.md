@@ -12,7 +12,7 @@ Een uitgebreide naslaggids met essentiële commando's voor systeembeheer, gebrui
 | `cd` | Wisselt van map (`cd ~` gaat naar home, `cd -` wisselt terug naar de vorige map). | `cd /var/log` |
 | `ls -la` | Toont alle bestanden en mappen in lijstvorm (`-l`), inclusief verborgen bestanden (`-a`). | `ls -lah` |
 | `ls -lhS` | Sorteert bestanden op bestandsgrootte met leesbare eenheden (`-h`: KB, MB, GB). | `ls -lhS /var/log` |
-| `tree -C` | Toont de mappenstructuur als een gekleurde boom (`-L 2` beperkt de diepte tot 2 niveaus). | `tree -L 2 /etc` |
+| `tree -C` | Toont de mappenstructuur als een gekleurde boom (`-L 2` beperkt de diepte tot 2 niveaus). | `tree -C -L 2 /etc` |
 | `mkdir -p` | Maakt een map aan, inclusief alle ontbrekende bovenliggende mappen. | `mkdir -p project/src/tests` |
 | `rmdir` | Verwijdert uitsluitend lege mappen. | `rmdir lege_map` |
 | `rm -rf` | Verwijdert bestanden of mappen recursief (`-r`) en geforceerd (`-f`) zonder bevestiging. | `rm -rf ./oude_build` |
@@ -29,13 +29,13 @@ Een uitgebreide naslaggids met essentiële commando's voor systeembeheer, gebrui
 | :--- | :--- | :--- |
 | `grep -rnI` | Zoekt recursief (`-r`), toont regelnummers (`-n`) en negeert binaire bestanden (`-I`). | `grep -rnI "DB_PASSWORD" /etc/` |
 | `grep -i` | Voert een hoofdletterongevoelige zoekopdracht uit. | `grep -i "failed" /var/log/auth.log` |
-| `grep -v` | Filtert omgekeerd: toont alleen regels die het patroon **niet** bevatten. | `grep -v "^#" /etc/hosts` |
-| `wc -l` | Telt het aantal regels in een bestand of vanuit een pipe (Word Count). | `grep -c "404" access.log` of `grep "404" access.log \| wc -l` |
+| `grep -v` | Filtert omgekeerd: toont alleen regels die het patroon niet bevatten. | `grep -v "^#" /etc/hosts` |
+| `wc -l` | Telt het aantal regels in een bestand of vanuit een pipe (Word Count). | `grep -c "404" access.log` |
 | `awk` | Krachtig hulpprogramma voor tekstverwerking en patroonfiltering per kolom. | `awk '{print $1, $9}' access.log` |
 | `sed` | Stream editor voor het filteren en inline vervangen van tekst via regex. | `sed -i 's/poort=80/poort=443/g' config.ini` |
 | `cut -d` | Knipt specifieke velden uit regels op basis van een scheidingsteken (bijvoorbeeld `:`). | `cut -d: -f1,7 /etc/passwd` |
-| `sort` & `uniq -c` | Sorteert invoer en telt unieke opeenvolgende voorkomens. | `cat ip.txt \| sort \| uniq -c \| sort -nr` |
-| Pipe (`\|`) | Verbindt de standaarduitvoer (stdout) van het eerste proces aan de invoer (stdin) van het tweede. | `cat access.log \| grep "POST" \| wc -l` |
+| `sort` & `uniq -c` | Sorteert invoer en telt unieke opeenvolgende voorkomens. | `sort ip.txt \| uniq -c \| sort -nr` |
+| Pipe (`\|`) | Verbindt de standaarduitvoer (stdout) van het eerste proces aan de invoer (stdin) van het tweede. | `grep "POST" access.log \| wc -l` |
 | Redirect (`>` en `>>`) | `>` overschrijft een bestand; `>>` voegt toe; `2>&1` combineert stderr met stdout. | `command > output.log 2>&1` |
 | `xargs` | Converteert regels uit de invoer naar commandline-argumenten voor een ander commando. | `find . -name "*.tmp" \| xargs rm -f` |
 
@@ -46,7 +46,7 @@ Een uitgebreide naslaggids met essentiële commando's voor systeembeheer, gebrui
 | Commando | Beschrijving | Voorbeeld |
 | :--- | :--- | :--- |
 | `su - [user]` | Schakelt over naar een andere gebruiker en laadt de volledige login-omgeving (environment en PATH). | `su - devuser` |
-| `su [user]` | Schakelt over naar een gebruiker maar **behoudt** de omgevingsvariabelen van de oorspronkelijke sessie. | `su devuser` |
+| `su [user]` | Schakelt over naar een gebruiker maar behoudt de omgevingsvariabelen van de oorspronkelijke sessie. | `su devuser` |
 | `sudo -i` | Opent een interactieve root-shell met het root-profiel (vergelijkbaar met `su -`). | `sudo -i` |
 | `sudo -u [user]` | Voert een enkel commando uit als een specifieke gebruiker zonder van sessie te wisselen. | `sudo -u www-data whoami` |
 | `whoami` | Toont de actieve gebruikersnaam in de huidige shell-sessie. | `whoami` |
@@ -131,10 +131,10 @@ Een uitgebreide naslaggids met essentiële commando's voor systeembeheer, gebrui
     ls -l /proc/*/exe 2>/dev/null | grep -E '/tmp|/dev/shm|/var/tmp'
     ```
 
-*   **Zoeken naar verborgen bestanden met SUID-permissies (Privilege Escalation check):**
+*   **Zoeken naar bestanden met SUID-permissies (Privilege Escalation check):**
     Zoekt bestanden die uitgevoerd worden met de rechten van de eigenaar (zoals root):
     ```bash
-    find / -perm -4000 -type f 2>/dev/null
+    find / -perm /4000 -type f 2>/dev/null
     ```
 
 *   **Controleer recent gewijzigde uitvoerbare bestanden in systeemmappen:**
@@ -150,9 +150,7 @@ Een uitgebreide naslaggids met essentiële commando's voor systeembeheer, gebrui
     ```
 
 *   **Ping sweep over een lokaal /24 subnet:**
-    Scant een IP-reeks (`192.168.1.1` tot `192.168.1.254`) met een timeout van 1 seconde en print actieve IP's:
+    Scant een IP-reeks (`192.168.1.1` tot `192.168.1.254`) met een timeout van 1 seconde en toont actieve IP's:
     ```bash
     for ip in {1..254}; do
-        ping -c 1 -W 1 192.168.1.$ip > /dev/null 2>&1 && echo "192.168.1.$ip is online" &
-    done; wait
-    ```
+        ping -c 1 -W
