@@ -82,35 +82,41 @@ ARP opereert tussen Layer 2 (Data Link) en Layer 3 (Network). Het vertaalt een b
 
 ### Scenario A: Apparaten in hetzelfde subnet (D1 -> D2)
 
-Situatie: D1 (192.168.1.10) wil pingen naar D2 (192.168.1.20) binnen hetzelfde /24 subnet.
+Situatie: D1 (192.168.1.10) wil communiceren met D2 (192.168.1.20) binnen hetzelfde /24 subnet. In Wireshark zie je hierbij een volledige tweerichtingsresolutie plaatsvinden:
 
 <pre>
-D1 (192.168.1.10)                                 D2 (192.168.1.20)
-       |                                                 |
-       |--- 1. ARP Request (Broadcast: FF:FF:FF:FF:FF:FF) --> (Iedereen ontvangt dit)
-       |       "Wie heeft 192.168.1.20? Vertel het 1.10" |
-       |                                                 | [D2 leest direct IP+MAC van D1
-       |                                                 |  en slaat dit direct op in cache]
-       |&lt;-- 2. ARP Reply (Unicast naar D1 MAC) ----------|
-       |       "Ik ben 192.168.1.20, mijn MAC is D2:MAC" |
-       |                                                 |
-  [D1 slaat D2 op                                        |
-   en start ICMP]                                        |
+D1 (192.168.1.10)                                          D2 (192.168.1.20)
+       |                                                          |
+       |--- 1. ARP Request (Broadcast: FF:FF:FF:FF:FF:FF) ------->| (Iedereen ontvangt dit)
+       |       "Who has 192.168.1.20? Tell 192.168.1.10"         |
+       |                                                          |
+       |&lt;-- 2. ARP Reply (Unicast naar D1:MAC) -------------------|
+       |       "192.168.1.20 is at D2:MAC"                        |
+  [D1 slaat D2 op]                                                |
+       |                                                          |
+       |&lt;-- 3. ARP Request (Unicast direct naar D1:MAC) ----------| (Geen broadcast)
+       |       "Who has 192.168.1.10? Tell 192.168.1.20"         |
+       |                                                          |
+       |--- 4. ARP Reply (Unicast naar D2:MAC) ------------------>|
+       |       "192.168.1.10 is at D1:MAC"                        |
+       |                                                   [D2 slaat D1 op]
+       |                                                          |
+  [Dataverkeer start (bijv. ICMP echo / reply)]                   |
 </pre>
 
 **Stap-voor-stap uitleg:**
 1. **Subnetevaluatie:** D1 vergelijkt het doel-IP (192.168.1.20) met zijn eigen subnetmasker en stelt vast dat D2 zich in hetzelfde lokale subnet bevindt.
-2. **Cache check:** D1 controleert zijn lokale ARP-tabel. Staat het MAC-adres van D2 er niet in, dan wordt het ICMP-pakket even vastgehouden.
-3. **ARP Request:** D1 verstuurt een Ethernet-frame met broadcast MAC-adres `FF:FF:FF:FF:FF:FF`. Elk apparaat op de switch ontvangt dit. Payload: *"Wie heeft 192.168.1.20? Meld dit aan 192.168.1.10 op D1:MAC"*.
-4. **Verwerking door D2:** D2 herkent zijn IP. D2 leest de zendergegevens (IP en MAC van D1) uit de header en bewaart deze direct in zijn eigen ARP-cache. D2 stuurt GEEN aparte ARP-request meer terug.
-5. **ARP Reply:** D2 stuurt een gerichte unicast direct naar het MAC-adres van D1 met de bevestiging van zijn MAC-adres.
-6. **Dataoverdracht:** D1 slaat de entry op in de cache en verzendt direct de ICMP echo-request (ping).
+2. **ARP Request van D1:** D1 verstuurt een Ethernet-broadcast (`FF:FF:FF:FF:FF:FF`) over de switch: *"Wie heeft 192.168.1.20? Meld dit aan 192.168.1.10 op D1:MAC"*.
+3. **ARP Reply van D2:** D2 herkent zijn IP en antwoordt via een gerichte unicast direct naar `D1:MAC`: *"192.168.1.20 heeft MAC-adres D2:MAC"*. D1 voegt D2 toe aan zijn ARP-cache.
+4. **Gerichte ARP Request van D2 naar D1:** Omdat D2 nu antwoordverkeer moet terugsturen naar D1, initieert de netwerkstack van D2 zélf een verificatieverzoek. Dit gebeurt direct als unicast naar `D1:MAC` (geen broadcast): *"Bevestig 192.168.1.10 aan 192.168.1.20"*.
+5. **ARP Reply van D1:** D1 bevestigt zijn identiteit direct aan D2 via een unicast reply. D2 slaat D1 nu gevalideerd op in zijn eigen ARP-cache.
+6. **Dataoverdracht:** Beide caches zijn synchroon en het dataverkeer (zoals de ping-pakketten) verloopt direct over Layer 2.
 
 ---
 
 ### Scenario B: Apparaten in verschillende subnets via een Router (D1 -> D3)
 
-Situatie: D1 (192.168.1.10) wil pingen naar D3 (10.0.0.50) via router-interface R1 (192.168.1.1).
+Situatie: D1 (192.168.1.10) wil communiceren met D3 (10.0.0.50) via router-interface R1 (192.168.1.1).
 
 <pre>
 D1 (192.168.1.10)                Router (R1: 192.168.1.1)            D3 (10.0.0.50)
