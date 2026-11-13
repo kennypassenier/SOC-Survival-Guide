@@ -67,3 +67,9 @@ Determine how long your scans take.
 ```bat
 -T[0-5]
 ```
+
+TIP: Use the following parameter so see which steps Nmap goes through on a networking level. 
+This could make things easier to understand.
+```bat
+-p <--- packet trace
+```
