@@ -3,7 +3,7 @@
 ## Steps used in exercise: 
 
 ### Exercise 1
-´´´bash 
+```bash 
 ip a
 netstat -r
 ping -c 4 1912.168.1.1
@@ -13,7 +13,7 @@ cat /etc/network/interfaces
 cat /etc/resolv.conf
 cat "nameserver 1922.168.1.5" > /etc/resolv.conf
 ping -c 4 www.google.com
-´´´
+```
 ### Exercise 2
 ```bash
 udhcpc
