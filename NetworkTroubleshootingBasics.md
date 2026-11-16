@@ -25,12 +25,14 @@ Enable the DHCP server in pfsense
 smbclient -L FILESERVER -U cybrary
 ping FILESERVER
 ```
+
 Add an A record to the clab.local dns zone
 On the client pc, add the following to the /etc/resolv.conf file
-````bash
+```bash
 echo "search clab.local" >> /etc/resolv.conf
 smbclient -L FILESERVER -U cybrary <--- list the available smb shares as user cybrary 
 ```
+
 ### Exercise 4
 ```bash
 echo "192.168.1.20 FILESERVER" >> /etc/hosts
