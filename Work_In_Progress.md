@@ -5,6 +5,8 @@
 - Vulnerability Scanner Basics
 - Patching Basics
 - PowerShell Basics
+- BASH Scripting Basics
+- Python Basics
 
 ## IDS Basics 
 ### Commands used
@@ -165,3 +167,35 @@ Naamwoorden zijn altijd in het **enkelvoud** en beschrijven het onderdeel van he
 * **`Computer`** — Het systeem zelf (`Restart-Computer`, `Get-ComputerInfo`)
 * **`Module`** — Uitbreidingspakketten voor PowerShell (`Install-Module`, `Import-Module`)
 * **`ADUser` / `LocalUser`** — Gebruikersaccounts in Active Directory of lokaal (`Get-LocalUser`)
+
+## BASH Scripting Basics
+### Commandsls -la | grep -v '^d' | wc -l <-- count files in current directory
+```bash
+#!/bin/bash <-- begin altijd met deze shebang om ervoor te zorgen dat linux het script uitvoert met de correcte shell
+ls -la <-- prints files
+ls -la | grep -v '^d' <-- search for things that do NOT start with lowercase "d" (directory listings start with lower-case "d" for "directory"
+ls -la | grep -v '^d' | wc -l <-- count each line
+ls -la | grep '^d' | wc -l <-- Hetzelfde, maar dan voor directories ipv files
+find . -maxdepth 1 -type f <-- find all files in current directory
+find . -maxdepth 1 -type f -exec du -h {} \;  <-- Kijken hoe groot die files zijn
+find . -maxdepth 1 -type f -exec du -h {} \; | sort -r <-- Sorteer de gevonden files
+find . -maxdepth 1 -type f -exec du -h {} \; | sort -r | head -5  <-- toon enkel de eerste vijf resultaten
+for ((a=1; a<=10; a++)); do echo $a; done | sort -r <-- sorteert als een string
+for ((a=1; a<=10; a++)); do echo $a; done | sort -rh <-- sorteert als een nummer
+echo{1..5} <-- brace expansion maakt alle items tussen twee compatibele items automatisch zelf aan
+echo{a..c}{1..3} <-- brace expansion is combineerbaar met meerdere opties
+for a in {1..254} ;do (ping -c 1 X.X.X.$a | grep "bytes from" &) ; done
+names=('John' 'Fred' 'Sally' 'Billy' 'Charlie') <-- array aanmaken
+echo ${names[@]}  <-- print alles uit de array in één keer uit
+echo ${!names[@]} <-- print enkel de indices
+echo ${#names[@]} <-- print de size van de array
+for name in ${names[@]}; do echo $name; done <-- print alle items uit de array via een for loop
+names[2]='Tom' <-- veranderd item 2 in de array
+mapfile -t fruits < "fruits.txt" <-- zet de info van het txt bestand in de "fruits" variabele
+
+if [ ! -d "$backup" ]
+then
+  mkdir "$backup"
+fi 
+```
+Als pipes ("|") niet beschikbaar zijn, zoals voor het "du" commando, dan werkt "-exec {} \;" wel
