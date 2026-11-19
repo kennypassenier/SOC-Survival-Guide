@@ -7,6 +7,7 @@
 - PowerShell Basics
 - BASH Scripting Basics
 - Python Basics
+- Firewall Basics (opnieuw)
 
 ## IDS Basics 
 ### Commands used
