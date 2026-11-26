@@ -1,151 +1,213 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-const quickCliSidebar = {
-    text: 'Snelle CLI Referentie',
+const repo = 'https://github.com/kennypassenier/SOC-Survival-Guide'
+
+const cliSidebar = {
+    text: 'CLI Referentie',
     collapsed: false,
     items: [
-        { text: 'PowerShell.md', link: '/scripting/PowerShell' },
-        { text: 'BASH.md', link: '/scripting/BASH' },
-        { text: 'CMD.md', link: '/scripting/CMD' }
+        { text: 'Overview & equivalents', link: '/scripting/' },
+        { text: 'PowerShell', link: '/scripting/powershell' },
+        { text: 'BASH', link: '/scripting/bash' },
+        { text: 'CMD', link: '/scripting/cmd' }
     ]
 }
 
-export default defineConfig({
+export default withMermaid({
+    ...defineConfig({
     title: 'SOC Survival Guide',
-    description: 'Persoonlijk naslagwerk voor Networking, OS, Security & Scripting',
+    description: 'Naslagwerk voor de SOC-analist: CLI-referenties, netwerkmodellen, Windows, Linux en security.',
+    lang: 'nl-NL',
     base: '/SOC-Survival-Guide/',
 
     cleanUrls: true,
     lastUpdated: true,
+    sitemap: { hostname: 'https://kennypassenier.github.io/SOC-Survival-Guide/' },
+
+    markdown: {
+        lineNumbers: true,
+        image: { lazyLoading: true },
+        container: {
+            tipLabel: 'Tip',
+            warningLabel: 'Let op',
+            dangerLabel: 'Gevaar',
+            infoLabel: 'Info',
+            detailsLabel: 'Details'
+        }
+    },
 
     themeConfig: {
         search: {
-            provider: 'local'
+            provider: 'local',
+            options: {
+                translations: {
+                    button: { buttonText: 'Zoeken', buttonAriaLabel: 'Zoeken' },
+                    modal: {
+                        noResultsText: 'Geen resultaten voor',
+                        resetButtonTitle: 'Zoekopdracht wissen',
+                        footer: { selectText: 'selecteren', navigateText: 'navigeren', closeText: 'sluiten' }
+                    }
+                }
+            }
         },
 
-        outline: {
-            level: [2, 3],
-            label: 'Op deze pagina'
+        outline: { level: [2, 3], label: 'Op deze pagina' },
+        docFooter: { prev: 'Vorige pagina', next: 'Volgende pagina' },
+        lastUpdated: { text: 'Laatst bijgewerkt' },
+        returnToTopLabel: 'Terug naar boven',
+        sidebarMenuLabel: 'Menu',
+        darkModeSwitchLabel: 'Thema',
+        lightModeSwitchTitle: 'Naar licht thema',
+        darkModeSwitchTitle: 'Naar donker thema',
+        externalLinkIcon: true,
+
+        editLink: {
+            pattern: `${repo}/edit/main/docs/:path`,
+            text: 'Bewerk deze pagina op GitHub'
+        },
+        socialLinks: [{ icon: 'github', link: repo }],
+        footer: {
+            message: 'Persoonlijke kennisbank, gebouwd met VitePress.',
+            copyright: 'MIT-licentie'
         },
 
         nav: [
-            { text: 'Networking', link: '/networking/OSI', activeMatch: '/networking/' },
-            { text: 'Windows', link: '/windows/Active_Directory_Basics', activeMatch: '/windows/' },
-            { text: 'Linux', link: '/linux/Linux_CLI_Basics', activeMatch: '/linux/' },
-            { text: 'Security', link: '/security/Cryptography_Basics', activeMatch: '/security/' },
-            { text: 'Tools', link: '/tools/Wireshark_Basics', activeMatch: '/tools/' },
+            { text: 'Networking', link: '/networking/', activeMatch: '/networking/' },
+            { text: 'Windows', link: '/windows/', activeMatch: '/windows/' },
+            { text: 'Linux', link: '/linux/', activeMatch: '/linux/' },
+            { text: 'Security', link: '/security/', activeMatch: '/security/' },
+            { text: 'Tools', link: '/tools/', activeMatch: '/tools/' },
             {
                 text: 'CLI Referentie',
                 activeMatch: '/scripting/',
                 items: [
-                    { text: 'Overzicht', link: '/scripting/' },
-                    { text: 'PowerShell', link: '/scripting/PowerShell' },
-                    { text: 'BASH', link: '/scripting/BASH' },
-                    { text: 'CMD', link: '/scripting/CMD' }
+                    { text: 'Overview & equivalents', link: '/scripting/' },
+                    { text: 'PowerShell', link: '/scripting/powershell' },
+                    { text: 'BASH', link: '/scripting/bash' },
+                    { text: 'CMD', link: '/scripting/cmd' }
                 ]
             },
-            { text: 'WIP', link: '/Work_In_Progress' }
+            {
+                text: 'Progress',
+                items: [
+                    { text: 'Work in progress', link: '/Work_In_Progress' },
+                    { text: 'Roadmap', link: '/roadmap' }
+                ]
+            },
+            { text: 'Glossary', link: '/glossary' }
         ],
 
         sidebar: {
             '/networking/': [
                 {
-                    text: 'Referentiemodellen',
-                    collapsed: false,
+                    text: 'Reference models',
                     items: [
-                        { text: 'Network Reference Models', link: '/networking/Network_Reference_Models' },
-                        { text: 'OSI Model', link: '/networking/OSI' },
-                        { text: 'OSI Deep Dive', link: '/networking/OSI_Deep_Dive' }
+                        { text: 'Overview', link: '/networking/' },
+                        { text: 'OSI model', link: '/networking/osi-model' },
+                        { text: 'TCP/IP model', link: '/networking/tcp-ip-model' },
+                        { text: 'Packet Lifecycle', link: '/networking/packet-lifecycle' },
+                        { text: 'Ports & Protocols', link: '/networking/ports-and-protocols' }
                     ]
                 },
                 {
-                    text: 'Netwerk & Infrastructuur',
-                    collapsed: false,
+                    text: 'Network & infrastructure',
                     items: [
-                        { text: 'IP Addressing Basics', link: '/networking/IP_Addressing_Basics' },
-                        { text: 'Network Device Basics', link: '/networking/Network_Device_Basics' },
-                        { text: 'VPN Basics', link: '/networking/VPN_Basics' },
-                        { text: 'Network Troubleshooting', link: '/networking/Network_Troubleshooting_Basics' }
+                        { text: 'IP addressing', link: '/networking/ip-addressing-basics' },
+                        { text: 'Network devices', link: '/networking/network-device-basics' },
+                        { text: 'VPN', link: '/networking/vpn-basics' },
+                        { text: 'Troubleshooting', link: '/networking/network-troubleshooting-basics' }
                     ]
                 },
-                quickCliSidebar
+                cliSidebar
             ],
 
             '/windows/': [
                 {
-                    text: 'Windows & Active Directory',
-                    collapsed: false,
+                    text: 'Windows',
                     items: [
-                        { text: 'Windows CLI Basics', link: '/windows/Windows_CLI_Basics' },
-                        { text: 'Windows File System', link: '/windows/Windows_File_System_Basics' },
-                        { text: 'Windows Services', link: '/windows/Windows_Services' },
-                        { text: 'Active Directory Basics', link: '/windows/Active_Directory_Basics' },
-                        { text: 'Group Policy Basics', link: '/windows/Group_Policy_Basics' }
+                        { text: 'Overview', link: '/windows/' },
+                        { text: 'CLI Basics', link: '/windows/windows-cli-basics' },
+                        { text: 'File system', link: '/windows/windows-file-system-basics' },
+                        { text: 'Services', link: '/windows/windows-services' }
                     ]
                 },
-                quickCliSidebar
+                {
+                    text: 'Domain management',
+                    items: [
+                        { text: 'Active Directory', link: '/windows/active-directory-basics' },
+                        { text: 'Group Policy', link: '/windows/group-policy-basics' }
+                    ]
+                },
+                cliSidebar
             ],
 
             '/linux/': [
                 {
-                    text: 'Linux Fundamenten',
-                    collapsed: false,
+                    text: 'Linux',
                     items: [
-                        { text: 'Linux CLI Basics', link: '/linux/Linux_CLI_Basics' },
-                        { text: 'Linux File System', link: '/linux/Linux_File_System_Basics' }
+                        { text: 'Overview', link: '/linux/' },
+                        { text: 'CLI Basics', link: '/linux/linux-cli-basics' },
+                        { text: 'File system', link: '/linux/linux-file-system-basics' }
                     ]
                 },
-                quickCliSidebar
+                cliSidebar
             ],
 
             '/security/': [
                 {
-                    text: 'Cryptografie',
-                    collapsed: false,
+                    text: 'Defense & continuity',
                     items: [
-                        { text: 'Cryptography Basics', link: '/security/Cryptography_Basics' },
-                        { text: 'Symmetric Cryptography', link: '/security/Symmetric_Cryptography' },
-                        { text: 'Asymmetric Cryptography', link: '/security/Asymmetric_Cryptography' },
-                        { text: 'Cryptographic Hash Functions', link: '/security/Cryptographic_Hash_Functions' }
+                        { text: 'Overview', link: '/security/' },
+                        { text: 'Access Control', link: '/security/access-control-basics' },
+                        { text: 'Firewalls', link: '/security/firewall-basics' },
+                        { text: 'Antivirus', link: '/security/antivirus-basics' },
+                        { text: 'Backup & recovery', link: '/security/data-backup-and-recovery-basics' }
                     ]
                 },
                 {
-                    text: 'Verdediging & Continuïteit',
-                    collapsed: false,
+                    text: 'Cryptography',
                     items: [
-                        { text: 'Access Control Basics', link: '/security/Access_Control_Basics' },
-                        { text: 'Firewall Basics', link: '/security/Firewall_Basics' },
-                        { text: 'Antivirus Basics', link: '/security/Antivirus_Basics' },
-                        { text: 'Data Backup & Recovery', link: '/security/Data_Backup_and_Recovery_Basics' }
+                        { text: 'Basics', link: '/security/cryptography-basics' },
+                        { text: 'Symmetric', link: '/security/symmetric-cryptography' },
+                        { text: 'Asymmetric', link: '/security/asymmetric-cryptography' },
+                        { text: 'Hash functions', link: '/security/cryptographic-hash-functions' }
                     ]
                 },
-                quickCliSidebar
+                cliSidebar
             ],
 
             '/tools/': [
                 {
-                    text: 'Analyse & Scanning',
-                    collapsed: false,
+                    text: 'Analysis & scanning',
                     items: [
-                        { text: 'Wireshark Basics', link: '/tools/Wireshark_Basics' },
-                        { text: 'Nmap Basics', link: '/tools/Nmap_Basics' }
+                        { text: 'Overview', link: '/tools/' },
+                        { text: 'Wireshark', link: '/tools/wireshark-basics' },
+                        { text: 'Nmap', link: '/tools/nmap-basics' }
                     ]
                 },
-                quickCliSidebar
+                cliSidebar
             ],
 
             '/scripting/': [
                 {
-                    text: 'CLI Naslagwerken',
-                    collapsed: false,
+                    text: 'CLI Referentie',
                     items: [
-                        { text: 'Overzicht', link: '/scripting/' },
-                        { text: 'PowerShell', link: '/scripting/PowerShell' },
-                        { text: 'BASH', link: '/scripting/BASH' },
-                        { text: 'CMD', link: '/scripting/CMD' }
+                        { text: 'Overview & equivalents', link: '/scripting/' },
+                        { text: 'PowerShell', link: '/scripting/powershell' },
+                        { text: 'BASH', link: '/scripting/bash' },
+                        { text: 'CMD', link: '/scripting/cmd' }
                     ]
                 }
             ]
         }
     }
+}),
+    mermaid: {
+        theme: 'default',
+        themeVariables: { fontSize: '18px' },
+        flowchart: { useMaxWidth: false, htmlLabels: true, padding: 16, nodeSpacing: 40, rankSpacing: 50 },
+        sequence: { useMaxWidth: false, actorFontSize: 18, messageFontSize: 17, noteFontSize: 16, width: 170, boxMargin: 10 }
+    },
+    mermaidPlugin: { class: 'mermaid' }
 })

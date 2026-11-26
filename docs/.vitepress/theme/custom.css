@@ -1,0 +1,78 @@
+/* Bredere layout: meer ruimte voor content en inhoudsopgave */
+:root {
+    --vp-layout-max-width: 2000px;
+    --vp-sidebar-width: 280px;
+}
+
+@media (min-width: 960px) {
+    .VPDoc.has-aside .content-container,
+    .VPDoc .content-container {
+        max-width: 1180px !important;
+    }
+    .VPDoc:not(.has-sidebar) .container {
+        max-width: 1400px !important;
+    }
+    .VPDoc:not(.has-sidebar) .content {
+        max-width: 1100px !important;
+    }
+}
+
+@media (min-width: 1280px) {
+    .VPDoc .aside {
+        max-width: 300px !important;
+    }
+    .VPDoc .container {
+        max-width: 1600px;
+    }
+}
+
+/* Mermaid: groter en leesbaar */
+.mermaid {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--vp-c-divider);
+    border-radius: 8px;
+    background: var(--vp-c-bg-soft);
+}
+.mermaid svg {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-width: 560px;
+}
+/* Hoge stroomdiagrammen niet over de volle breedte oprekken */
+.mermaid svg[aria-roledescription^='flowchart'] {
+    max-width: 880px !important;
+}
+.mermaid svg .nodeLabel,
+.mermaid svg .edgeLabel,
+.mermaid svg text {
+    font-size: 17px;
+}
+
+/* Homepage: hero over de volle breedte en gecentreerd */
+.VPHero .container,
+.VPFeatures .container {
+    max-width: 1400px !important;
+}
+.VPHero .main {
+    max-width: none !important;
+    width: 100%;
+    text-align: center !important;
+}
+.VPHero .name,
+.VPHero .text,
+.VPHero .tagline {
+    max-width: 960px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.VPHero .actions {
+    justify-content: center !important;
+}
+.VPHero .container {
+    display: block !important;
+}

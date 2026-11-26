@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/kennypassenier/SOC-Survival-Guide#readme",
   "devDependencies": {
-    "vitepress": "^1.6.4"
+    "mermaid": "^11.4.1",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
   }
 }
