@@ -1,3 +1,8 @@
-﻿# SOC & Network Tools
+# SOC & Network Tools
 
-Kies een onderwerp in de zijbalk aan de linkerkant.
+Essentiële netwerk- en beveiligingstools voor incident response en netwerkanalyse.
+
+## Onderwerpen
+
+- [Nmap Basics](./Nmap_Basics.md) — Netwerkdetectie, poortscanning en host-discovery.
+- [Wireshark Basics](./Wireshark_Basics.md) — Pakketanalyse, decodering en verkeersinspectie.
