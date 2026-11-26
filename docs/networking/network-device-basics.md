@@ -2,20 +2,7 @@
 
 Overzicht van actieve netwerkcomponenten, van fysieke bekabeling tot intelligente firewalls en routers.
 
-## 1. Commando's & Configuratie
-
-### Interface Inspectie
-Controleer of interfaces statisch zijn geconfigureerd of via DHCP een IP ontvangen.
-
-<<< @/snippets/bash/network.sh#network-config{bash}
-
-### Routering & Connectiviteit
-De routeringstabel bepaalt hoe pakketten het lokale netwerk verlaten.
-
-<<< @/snippets/bash/network.sh#network-config{bash}
-<<< @/snippets/bash/network.sh#dns{bash}
-
-## 2. Kerncomponenten
+## Kerncomponenten
 
 ### Layer 2: Switches
 Een switch verbindt apparaten binnen een lokaal netwerk (LAN) en stuurt frames op basis van MAC-adressen naar de juiste poort.
@@ -35,7 +22,20 @@ Verbindt verschillende netwerken en bepaalt de optimale route voor IP-pakketten.
 - **Bridge:** Verbindt twee LAN-segmenten.
 - **Repeater:** Versterkt elektrische signalen over lange afstanden.
 
-## 3. Praktijkscenario's
+## Commands
+
+### Interface Inspectie
+Controleer of interfaces statisch zijn geconfigureerd of via DHCP een IP ontvangen.
+
+<<< @/snippets/bash/network.sh#network-config{bash}
+
+### Routering & Connectiviteit
+De routeringstabel bepaalt hoe pakketten het lokale netwerk verlaten.
+
+<<< @/snippets/bash/network.sh#network-config{bash}
+<<< @/snippets/bash/network.sh#dns{bash}
+
+## Scenarios
 
 ### Statische Routes in pfSense
 Wanneer een nieuw subnet (`10.10.10.0/24`) achter een interne router wordt geplaatst, moet de centrale firewall (bijv. pfSense) hiervan op de hoogte zijn:

@@ -2,7 +2,49 @@
 
 Een Virtual Private Network (VPN) creëert een versleutelde tunnel over een onvertrouwd netwerk (zoals het internet) om veilig toegang te krijgen tot interne bronnen.
 
-## 1. Commando's & Verificatie
+## VPN Protocollen
+
+| Protocol | Poort | Veiligheid | Gebruik |
+| :--- | :--- | :--- | :--- |
+| **PPTP** | TCP 1723 | Zwak | Verouderd |
+| **L2TP/IPsec** | UDP 500/4500 | Sterk | Veelzijdig |
+| **SSTP** | TCP 443 | Sterk | Firewall-vriendelijk (HTTPS) |
+| **OpenVPN** | UDP 1194 | Zeer Sterk | Open-source, flexibel |
+| **IPsec** | UDP 500/4500 | Zeer Sterk | Site-to-Site standaard |
+
+## Anatomie van IPsec
+
+IPsec beveiligd verkeer via twee kernprotocollen:
+- **ESP (Encapsulating Security Payload):** Biedt versleuteling en authenticatie (standaard).
+- **AH (Authentication Header):** Biedt alleen authenticatie en integriteit (geen versleuteling).
+
+### Modi
+- **Transport Mode:** Versleutelt alleen de payload (Host-to-Host).
+- **Tunnel Mode:** Versleutelt het volledige pakket inclusief originele headers (Site-to-Site).
+
+## De 5 Stappen van IPsec (IKE)
+
+```mermaid
+sequenceDiagram
+    participant A as Gateway A
+    participant B as Gateway B
+    Note over A: 1. Verkeer voor extern subnet gedetecteerd
+    A->>B: 2. IKE Phase 1: authenticatie en veilig beheerkanaal
+    B-->>A: Phase 1 voltooid (IKE SA)
+    A->>B: 3. IKE Phase 2: parameters voor de datatunnel
+    B-->>A: Phase 2 voltooid (IPsec SA)
+    A->>B: 4. Versleuteld dataverkeer (ESP)
+    B-->>A: Versleuteld antwoord
+    Note over A,B: 5. Tunnel eindigt bij time-out of handmatig
+```
+
+1. **Trigger:** Verkeer voor een extern subnet wordt gedetecteerd.
+2. **IKE Phase 1 (P1):** Authenticatie en opbouw van een veilig beheer-kanaal.
+3. **IKE Phase 2 (P2):** Opbouw van de eigenlijke data-tunnel (Symmetrische encryptie).
+4. **Data Transfer:** Versleuteld verkeer tussen de gateways.
+5. **Termination:** De tunnel wordt verbroken bij inactiviteit of timeout.
+
+## Commands
 
 ### Connectiviteit testen
 Gebruik `ping` om te verifiëren of een host in een extern subnet bereikbaar is over de tunnel.
@@ -14,35 +56,7 @@ Op servers zonder GUI (Debian, Ubuntu, Arch) gebruik je tools als `strongSwan` o
 
 <<< @/snippets/bash/firewall.sh#vpn{bash}
 
-## 2. VPN Protocollen
-
-| Protocol | Poort | Veiligheid | Gebruik |
-| :--- | :--- | :--- | :--- |
-| **PPTP** | TCP 1723 | Zwak | Verouderd |
-| **L2TP/IPsec** | UDP 500/4500 | Sterk | Veelzijdig |
-| **SSTP** | TCP 443 | Sterk | Firewall-vriendelijk (HTTPS) |
-| **OpenVPN** | UDP 1194 | Zeer Sterk | Open-source, flexibel |
-| **IPsec** | UDP 500/4500 | Zeer Sterk | Site-to-Site standaard |
-
-## 3. Anatomie van IPsec
-
-IPsec beveiligd verkeer via twee kernprotocollen:
-- **ESP (Encapsulating Security Payload):** Biedt versleuteling en authenticatie (standaard).
-- **AH (Authentication Header):** Biedt alleen authenticatie en integriteit (geen versleuteling).
-
-### Modi
-- **Transport Mode:** Versleutelt alleen de payload (Host-to-Host).
-- **Tunnel Mode:** Versleutelt het volledige pakket inclusief originele headers (Site-to-Site).
-
-## 4. De 5 Stappen van IPsec (IKE)
-
-1. **Trigger:** Verkeer voor een extern subnet wordt gedetecteerd.
-2. **IKE Phase 1 (P1):** Authenticatie en opbouw van een veilig beheer-kanaal.
-3. **IKE Phase 2 (P2):** Opbouw van de eigenlijke data-tunnel (Symmetrische encryptie).
-4. **Data Transfer:** Versleuteld verkeer tussen de gateways.
-5. **Termination:** De tunnel wordt verbroken bij inactiviteit of timeout.
-
-## 5. Praktijk: pfSense Site-to-Site
+## Praktijk: pfSense Site-to-Site
 
 Bij het configureren van een tunnel tussen twee locaties:
 1. **Fase 1:** Stel remote gateway, PSK (Pre-Shared Key) en encryptie (bijv. AES-256) in.

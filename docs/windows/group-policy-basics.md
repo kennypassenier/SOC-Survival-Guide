@@ -1,78 +1,8 @@
 # Group Policy Basics
 
-## 1. Overzicht van Relevante Commando's & Tools
+Hoe Group Policy instellingen centraal afdwingt, hoe de hiërarchie werkt en hoe je conflicten oplost.
 
-### A. Group Policy Beheer & Troubleshooting (`gpupdate`, `gpresult`, `gpedit.msc`, `gpmc.msc`)
-
-#### `gpupdate`
-* **Doel:** Dwingt een onmiddellijke vernieuwing (*refresh*) af van zowel de lokale als de Active Directory Group Policy-instellingen op de computer en voor de ingelogde gebruiker (zonder te hoeven wachten op de standaard achtergrondcyclus van 90 minuten).
-* **Parameters & Opties:**
-  * `/force`: Past alle beleidsinstellingen opnieuw toe, ook de instellingen die sinds de laatste verversing niet zijn gewijzigd.
-* **Praktijkgebruik:**
-  ```powershell
-  # Forceer het direct opnieuw toepassen van alle Computer- en User-policies
-  gpupdate /force
-  ```
-* **Tips, Valkuilen & Modernere Mogelijkheden:**
-  * Bepaalde beleidsinstellingen — zoals software-installaties, mapomleidingen (*Folder Redirection*) of computer-opstartscripts — kunnen niet altijd direct op de achtergrond worden toegepast en vereisen een herstart of opnieuw aanmelden (*logoff/logon*).
-  * **[Aanvullend] Extra `gpupdate`-switches & PowerShell-equivalent:**
-    * `gpupdate /target:computer /force` of `gpupdate /target:user /force`: Vernieuwt uitsluitend het computer- of gebruikersgedeelte.
-    * **PowerShell-cmdlet:** `Invoke-GPUpdate -Force` (onderdeel van de `GroupPolicy`-module; kan met `-Computer "<hostnaam>"` ook op afstand op een domeincomputer worden uitgevoerd).
-
-#### `gpresult`
-* **Doel:** Genereert een **Resultant Set of Policy (RSoP)**-rapport op de opdrachtregel om te analyseren welke Group Policy Objects (GPO's) daadwerkelijk zijn toegepast, welke instellingen actief zijn en welke GPO heeft gewonnen bij een conflict.
-* **Parameters & Opties:**
-  * `/Z` (`Z` = super-verbose): Toont alle gedetailleerde beleidsinstellingen (inclusief *Administrative Templates* en registerwaarden) die voor de gebruiker en computer gelden.
-  * `/R` **[Aanvullend]** (`R` = **R**esultant summary): Geeft een beknopt overzicht van toegepaste GPO's, groepslidmaatschappen en de laatst gebruikte Domain Controller.
-  * `/H <pad.html>` **[Aanvullend]** (`H` = **H**TML report): Exporteert een overzichtelijk, klikbaar RSoP-rapport naar een HTML-bestand (bijv. `gpresult /H C:\Temp\rsop.html`).
-* **Praktijkgebruik:**
-  ```powershell
-  # Genereer een volledig gedetailleerd RSoP-rapport in de console (inclusief Administrative Templates)
-  gpresult /Z
-  ```
-* **Tips, Valkuilen & Modernere Mogelijkheden:**
-  * Om in `gpresult /Z` ook de **Computer Configuration**-policies te kunnen zien, moet je het commando uitvoeren vanuit een verhoogde (**Administrator**) PowerShell- of CMD-sessie.
-  * **[Aanvullend] PowerShell-alternatief:** `Get-GPResultantSetOfPolicy -ReportType Html -Path "C:\Temp\rsop.html"`.
-
-#### `gpedit.msc` & `gpmc.msc`
-* **Doel:**
-  * `gpedit.msc`: Opent de **Local Group Policy Editor** om het lokale groepsbeleid op een individuele Windows-machine te bekijken en te configureren.
-  * `gpmc.msc`: Opent de **Group Policy Management Console (GPMC)** op een Domain Controller of beheerwerkstation om domeinbrede GPO's aan te maken, te koppelen (*linken*), te bewerken en te simuleren (*Group Policy Modeling* / *Group Policy Results*).
-* **Praktijkgebruik:**
-  ```cmd
-  :: Open de Local Group Policy Editor
-  gpedit.msc
-
-  :: Open de Group Policy Management Console (voor AD-domeinen)
-  gpmc.msc
-  ```
-* **[Aanvullend] Linux- & Cloud-equivalenten (Debian/Ubuntu, Arch & Entra ID):**
-  * **Cloud (Microsoft Entra ID / Intune):** In moderne cloud-only omgevingen wordt Group Policy vervangen door **Microsoft Intune Configuration Profiles** (MDM / CSP-policies) in combinatie met *Entra ID Conditional Access*.
-  * **Linux (Debian/Ubuntu & Arch):** Er bestaat geen native GPO-engine, maar centraal configuratiebeheer wordt uitgevoerd met **Configuration Management / IaC-tools** zoals **Ansible**, **Puppet** of **SaltStack**. Voor Linux-clients die aan een Active Directory-domein zijn gekoppeld, kunnen **SSSD (`sssd-ad`)** of **Ubuntu ADSys** een subset van AD Group Policies toepassen.
-
----
-
-### B. Ondersteunende PowerShell Cmdlets voor AD & Groepsbeheer
-
-#### `Import-Module`, `New-ADOrganizationalUnit` & `Add-ADGroupMember`
-* **Doel:**
-  * `Import-Module .\Install-AD.ps1`: Laadt een lokaal PowerShell-script of -module in de huidige sessie (zoals het hulpscript met `Invoke-ADInstaller -DomainName cybrary.local`).
-  * `New-ADOrganizationalUnit`: Maakt een hiërarchie van Organizational Units (OU's) aan waarop domein-GPO's gekoppeld kunnen worden (bijv. `Cybrary` en een geneste sub-OU `Engineering`).
-  * `Add-ADGroupMember` & `Get-ADGroupMember`: Voegt een gebruiker toe aan `"Domain Admins"` en controleert het groepslidmaatschap (vereist na aanpassing een *Sign out* en opnieuw inloggen voordat het nieuwe Kerberos-toegangstoken actief wordt).
-* **Praktijkgebruik & Permutaties:**
-  ```powershell
-  # Voeg gebruiker 'cybrary' toe aan Domain Admins en verifieer
-  Add-ADGroupMember -Identity "Domain Admins" -Members "cybrary"
-  Get-ADGroupMember -Identity "Domain Admins"
-
-  # Maak een hoofd-OU en een geneste sub-OU aan voor gelaagde GPO-toepassing
-  New-ADOrganizationalUnit -Name "Cybrary" -Path "DC=cybrary,DC=local"
-  New-ADOrganizationalUnit -Name "Engineering" -Path "OU=Cybrary,DC=cybrary,DC=local"
-  ```
-
----
-
-## 2. Algemene Uitleg & Theorie
+## Concepts
 
 ### Werking & Architectuur van Group Policy
 * **Definitie & Historie:** Group Policy is een Windows-beheermechanisme (geïntroduceerd in **1999** met **Windows 2000** en Active Directory) waarmee beheerders gecentraliseerd instellingen voor gebruikersaccounts en computersystemen kunnen afdwingen. Vóór Group Policy moesten beheerders losse registeraanpassingen (*registry tweaks*) handmatig verspreiden.
@@ -85,6 +15,12 @@
 * **Verversingscyclus:** Alle Group Policies worden op de achtergrond standaard **elke 90 minuten** automatisch opnieuw toegepast (aanpasbaar per beleidsinstelling), of handmatig geforceerd via `gpupdate /force`.
 
 ### GPO-hiërarchie & Voorrangsregels (LSDOU)
+
+```mermaid
+flowchart LR
+    L["1. Local"] --> S["2. Site"] --> D["3. Domain"] --> O["4. OU<br/>diepste OU laatst"]
+    O --> R["Resultaat: laatste toegepaste instelling wint"]
+```
 Wanneer meerdere GPO's op verschillende niveaus conflicterende instellingen bevatten, worden ze in een vaste volgorde verwerkt — onthouden met het acroniem **LSDOU** (*Local, Site, Domain, Organizational Unit*). **De laatst toegepaste GPO wint** en overschrijft eerdere instellingen:
 
 | Volgorde | Niveau | Bereik & Voorrangsregel |
@@ -94,8 +30,8 @@ Wanneer meerdere GPO's op verschillende niveaus conflicterende instellingen beva
 | **3** | **D**omain Group Policy | Gekoppeld aan het gehele AD-domein (bijv. *Default Domain Policy*). Overschrijft Local en Site GPO's. |
 | **4 (Laatst)** | **O**rganizational **U**nit (OU) | De aanbevolen methode voor granulair beheer. Overschrijft alle bovenliggende niveaus; bij geneste OU's wint de **meest specifieke (diepste) child-OU**. |
 
-* **Belangrijke uitzondering (Account & Password Policies):** Domeinbrede wachtwoord- en accountvergrendelingsinstellingen voor domeinaccounts worden beheerd in de AD-database (niet in de lokale SAM). Daarom heeft de **Default Domain Policy** op domeinniveau voorrang boven een wachtwoordbeleid op OU-niveau (tenzij expliciet *Fine-Grained Password Policies* worden gebruikt **[Aanvullend]**).
-* **[Aanvullend] Enforced & Block Inheritance:** Binnen de GPMC kan een beheerder een bovenliggende GPO markeren als **Enforced** (*No Override*, waardoor onderliggende OU's deze niet kunnen overschrijven) of op een OU **Block Inheritance** inschakelen.
+* **Belangrijke uitzondering (Account & Password Policies):** Domeinbrede wachtwoord- en accountvergrendelingsinstellingen voor domeinaccounts worden beheerd in de AD-database (niet in de lokale SAM). Daarom heeft de **Default Domain Policy** op domeinniveau voorrang boven een wachtwoordbeleid op OU-niveau (tenzij expliciet *Fine-Grained Password Policies* worden gebruikt).
+* **Enforced & Block Inheritance:** Binnen de GPMC kan een beheerder een bovenliggende GPO markeren als **Enforced** (*No Override*, waardoor onderliggende OU's deze niet kunnen overschrijven) of op een OU **Block Inheritance** inschakelen.
 
 ### Visualisatie- & Analysehulpmiddelen
 Vanwege de gelaagde overerving biedt Microsoft vier tools om te achterhalen welke beleidsregels daadwerkelijk actief zijn (*Resultant Set of Policy*):
@@ -112,9 +48,16 @@ Met duizenden beschikbare instellingen regelt Group Policy onder meer:
 * Beveiligingsbeperkingen (*Hardening*): toegang blokkeren tot het Configuratiescherm (*Control Panel*), de Register-editor (`regedit`), het tabblad *Security* in Verkenner, of het uitschakelen van systeemafsluiting en ballonmeldingen.
 * Uitvoeren van **Startup/Shutdown-scripts** (Computer) en **Logon/Logoff-scripts** (User), proxy-instellingen, netwerkprinters, bestandsauditing (*File Auditing*), Windows Time en energiebeheer (*Power Plans*).
 
----
+## Commands
 
-## 3. Praktijkscenario's & Stappenplannen
+De commando's voor dit onderwerp staan in de referentiepagina's, met parameters en voorbeelden:
+
+- [gpupdate](/scripting/cmd#cmd-gpupdate)
+- [gpresult](/scripting/cmd#cmd-gpresult)
+- [gpedit.msc & gpmc.msc](/scripting/cmd#cmd-gpedit-msc-gpmc-msc)
+- [Import-Module, New-ADOrganizationalUnit & Add-ADGroupMember](/scripting/powershell#ps-domeinscript-importeren-en-ou-hi-rarchie)
+
+## Scenarios
 
 ### Scenario 1: Werkstation Hardening met Local Group Policy (`gpedit.msc`)
 Het lokaal beperken van gebruikersrechten op een losstaand werkstation en het direct testen van de afgedwongen restricties:
@@ -126,9 +69,7 @@ Het lokaal beperken van gebruikersrechten op een losstaand werkstation en het di
      * *System* → **Prevent access to registry editing tools** (`Enabled`)
      * *Windows Components → File Explorer* → **Remove Security tab** (`Enabled`)
 2. **Pas het lokale beleid onmiddellijk toe:**
-   ```powershell
-   gpupdate /force
-   ```
+   <<< @/snippets/ps/windows-group-policy.ps1#scenario-1-stap-1{powershell}
 3. **Valideer dat de beperkingen actief zijn:**
    * Probeer `regedit` of `control` te starten vanuit een prompt; Windows blokkeert beide tools met een melding dat deze door de systeembeheerder zijn uitgeschakeld.
 
@@ -140,10 +81,7 @@ Het demonstreren van de LSDOU-hiërarchie waarbij eerst een Domain-GPO een Local
    * Open **Group Policy Management (`gpmc.msc`)**, klik met rechts op **Default Domain Policy → Edit**, navigeer naar *User Configuration → Policies → Administrative Templates → Control Panel* en zet dezelfde instelling op **Disabled** (staat toegang expliciet toe; *Not configured* zou de lokale instelling ongemoeid laten).
    * Voer `gpupdate /force` en `gpresult /Z` uit: de **Default Domain Policy** overschrijft de Local GPO, waardoor het Configuratiescherm weer toegankelijk is.
 2. **Bouw een geneste OU-structuur met een algemene en een uitzonderings-GPO:**
-   ```powershell
-   New-ADOrganizationalUnit -Name "Cybrary" -Path "DC=cybrary,DC=local"
-   New-ADOrganizationalUnit -Name "Engineering" -Path "OU=Cybrary,DC=cybrary,DC=local"
-   ```
+   <<< @/snippets/ps/windows-group-policy.ps1#scenario-2-stap-1{powershell}
    * **Bovenliggende OU (`Cybrary`):** Maak en koppel via *Create a GPO in this domain, and Link it here...* de GPO **`Cybrary-All-Desktops`**, en zet onder *Computer Configuration → Policies → Administrative Templates → Windows Components → Windows Update* de optie **Configure Automatic Updates** op **Enabled**.
    * **Geneste sub-OU (`Engineering`):** Maak en koppel op de OU `Engineering` de GPO **`Disable-Windows-Update`** en zet **Configure Automatic Updates** op **Disabled**.
 3. **Simuleer en controleer de winnende GPO met Group Policy Modeling:**
@@ -151,14 +89,12 @@ Het demonstreren van de LSDOU-hiërarchie waarbij eerst een Domain-GPO een Local
    * Selecteer bij *Computer Information* de container van de sub-OU (`OU=Engineering,OU=Cybrary,DC=cybrary,DC=local`) en rond de wizard af.
    * *Resultaat:* In het *Group Policy Report* is **`Disable-Windows-Update`** de *Winning GPO* voor computers in `Engineering`, omdat een child-OU altijd voorrang heeft op een parent-OU (`Cybrary-All-Desktops`).
 
----
-
-## 4. Aanvullende Bronnen & Referenties
+## References
 
 * **Interne Commandoreferenties (SOC Analyst Map):**
   * Zie `PowerShell.md` (`gpupdate /force`, `gpresult /Z`, `Invoke-GPUpdate`, `Get-GPResultantSetOfPolicy`, `New-ADOrganizationalUnit`, `Add-ADGroupMember`) en `CMD.md` (`gpedit.msc`, `gpmc.msc`, `gpupdate`, `gpresult`).
   * Zie `BASH.md` voor Linux-configuratiebeheer (`ansible`, `sssd`).
-* **[Aanvullend] Officiële Documentatie & Security Referenties:**
+* **Officiële Documentatie & Security Referenties:**
   * [Microsoft Learn: Group Policy Overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-policy/group-policy-overview) — Officiële documentatie over GPO-architectuur, `SYSVOL`, LSDOU-verwerkingsvolgorde en RSoP.
   * [Microsoft Security Compliance Toolkit (SCT)](https://www.microsoft.com/en-us/download/details.aspx?id=55319) — Officiële Microsoft Security Baselines (GPO-templates) om Windows-servers en werkstations te hardenen.
   * [MITRE ATT&CK T1484.001: Domain or Tenant Policy Modification — Group Policy Modification](https://attack.mitre.org/techniques/T1484/001/) — Overzicht van hoe aanvallers kwaadaardige GPO's misbruiken om malware of scripts domeinbreed uit te rollen.

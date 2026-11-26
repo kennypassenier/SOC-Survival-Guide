@@ -1,11 +1,32 @@
-# Beveiliging & Cryptografie
+# Security
 
-Fundamentele beveiligingsconcepten, toegangscontrole, antivirus, firewalls en cryptografie.
+De concepten achter detectie en verdediging. Elke pagina combineert theorie met de commando's om het onderwerp in de praktijk te controleren.
 
-## Onderwerpen
+## Verdediging & continuïteit
 
-- [Access Control Basics](./Access_Control_Basics.md) — Toegangscontrole, NTFS-permissies en RBAC.
-- [Antivirus Basics](./Antivirus_Basics.md) — Endpoint security, detectiemethoden en Windows Defender.
-- [Firewall Basics](./Firewall_Basics.md) — Netwerkbeveiliging, pakketfiltering en stateful inspection.
-- [Cryptografie Basisoverzichten](./Cryptography_Basics.md) — Overzicht van symmetrische en asymmetrische cryptografie, en hash-functies.
-- [Data Backup & Recovery](./Data_Backup_and_Recovery_Basics.md) — Strategieën voor back-up en herstel.
+| Pagina | Inhoud |
+| :--- | :--- |
+| [Access Control](/security/access-control-basics) | Toegangsmodellen, NTFS-permissies en overerving |
+| [Firewall Basics](/security/firewall-basics) | Firewalltypen, regels en best practices |
+| [Antivirus Basics](/security/antivirus-basics) | Detectiemethoden, quarantaine en Microsoft Defender |
+| [Data Backup & Recovery](/security/data-backup-and-recovery-basics) | Back-uptypen en de 3-2-1-1-0-regel |
+
+## Cryptografie
+
+| Pagina | Inhoud |
+| :--- | :--- |
+| [Cryptography Basics](/security/cryptography-basics) | Kernbegrippen en het verschil tussen symmetrisch en asymmetrisch |
+| [Symmetric Cryptography](/security/symmetric-cryptography) | Gedeelde sleutels, AES en het sleuteluitwisselingsprobleem |
+| [Asymmetric Cryptography](/security/asymmetric-cryptography) | Key pairs, RSA en PKI |
+| [Cryptographic Hash Functions](/security/cryptographic-hash-functions) | Integriteit, eigenschappen en toepassingen |
+
+## Leerpad
+
+1. Begin met [Cryptography Basics](/security/cryptography-basics) en werk door naar symmetrisch, asymmetrisch en hashing.
+2. Lees daarna de pagina's over verdediging, te beginnen met [Access Control](/security/access-control-basics).
+3. Sluit af met [Data Backup & Recovery](/security/data-backup-and-recovery-basics) voor herstelscenario's.
+
+## Related
+
+- [Nmap](/tools/nmap-basics) om je eigen verdediging te testen.
+- [Windows Services](/windows/windows-services) en [Active Directory](/windows/active-directory-basics) voor attack vectors.

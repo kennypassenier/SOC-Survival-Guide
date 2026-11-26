@@ -2,7 +2,7 @@
 
 Essentiële terminal-commando's voor navigatie, bestandsbeheer en systeeminspectie.
 
-## 1. Identiteit & Systeemcontext
+## Identiteit & Systeemcontext
 
 ### Gebruiker en Systeem
 * **`whoami`**: Toont de huidige gebruikersnaam.
@@ -11,7 +11,7 @@ Essentiële terminal-commando's voor navigatie, bestandsbeheer en systeeminspect
 
 <<< @/snippets/bash/system.sh#identity{bash}
 
-## 2. Navigatie & Bestandsstructuur
+## Navigatie & Bestandsstructuur
 
 ### Navigeren in het Bestandssysteem
 * **`pwd`**: Toont het absolute pad van de huidige werkmap (*Print Working Directory*).
@@ -20,7 +20,7 @@ Essentiële terminal-commando's voor navigatie, bestandsbeheer en systeeminspect
 
 <<< @/snippets/bash/file.sh#navigation{bash}
 
-## 3. Bestandsbeheer & Redirection
+## Bestandsbeheer & Redirection
 
 ### Mappen en Bestanden Maken
 * **`mkdir`**: Maakt mappen aan (optie `-p` voor hiërarchie).
@@ -36,7 +36,7 @@ Essentiële terminal-commando's voor navigatie, bestandsbeheer en systeeminspect
 
 <<< @/snippets/bash/file.sh#manipulation{bash}
 
-## 4. Pagers & Analyse
+## Pagers & Analyse
 
 ### Grote Bestanden Lezen
 * **`more` / `less`**: Pagers om bestanden pagina voor pagina te bekijken (`less` ondersteunt voor- en achterwaarts scrollen).
