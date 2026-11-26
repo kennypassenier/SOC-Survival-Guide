@@ -1,27 +1,30 @@
 #region identity
-# Controleer huidige gebruikersnaam, UID, GID en groepen
+# Toon de huidige gebruikersnaam
 whoami
+# Toon UID, GID en alle groepen van de gebruiker
 id
 #endregion identity
 
 #region sudo
-# Voer een beheercommando uit met root-rechten
+# Voer één commando uit met root-rechten
 sudo ls /root
 
-# Wissel naar een ander lokaal gebruikersaccount (afsluiten met exit)
+# Wissel naar een ander account met een volledige login-shell (-); sluit af met exit
 su - sally
 #endregion sudo
 
 #region users
-# Debian / Ubuntu: interactief gebruiker aanmaken inclusief home-map en wachtwoord
+# Debian/Ubuntu: maakt een gebruiker aan, vraagt om wachtwoord en maakt de home-map
 sudo adduser michael
 
-# Arch Linux & universeel Linux-equivalent
+# Universeel equivalent: -m maakt de home-map aan, passwd stelt het wachtwoord in
 sudo useradd -m michael
 sudo passwd michael
 
-# Groep aanmaken, gebruiker toevoegen en controleren
+# Maak een groep aan
 sudo groupadd analysts
+# -a: voeg toe zonder bestaande groepen te wissen, -G: lijst van groepen
 sudo usermod -aG analysts michael
+# Toon de groep en haar leden
 getent group analysts
 #endregion users

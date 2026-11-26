@@ -1,16 +1,17 @@
 #region acl
-# Inspecteer alle toegangsregels (ACE's) van een map
+# Toon de volledige ACL van een map (alle ACE's: wie heeft welke rechten); Format-List toont alles onder elkaar
 Get-Acl -Path C:\Hall_of_Justice | Format-List
 
-# Bekijk de leden van een lokale beveiligingsgroep
+# Leden van een lokale groep (-Group)
 Get-LocalGroupMember -Group "Leaders"
+# De Administrators-groep hoort een korte, bekende lijst te hebben
 Get-LocalGroupMember -Group "Administrators"
 #endregion acl
 
 #region backup
-# Installeer Windows Server Backup op Windows Server
+# Installeer de back-uprol op Windows Server
 Install-WindowsFeature Windows-Server-Backup
 
-# Controleer de status en laatste herstelpunten van Windows Server Backup
+# Toon de status van de laatste back-up en de beschikbare herstelpunten
 Get-WBSummary
 #endregion backup

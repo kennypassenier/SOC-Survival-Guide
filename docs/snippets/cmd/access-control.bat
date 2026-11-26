@@ -12,14 +12,3 @@ icacls C:\Leadership /grant "Leaders:(OI)(CI)M"
 icacls C:\Leadership /inheritance:d
 icacls C:\Leadership /remove "BUILTIN\Users"
 :: #endregion icacls
-
-:: #region ads
-:: Schrijf verborgen data naar een Alternate Data Stream achter notasecret.txt
-echo "Verborgen boodschap" > notasecret.txt:secret
-
-:: Lees de inhoud van de Alternate Data Stream uit
-more < notasecret.txt:secret
-
-:: Toon alle Alternate Data Streams in de huidige map met dir /r
-dir /r
-:: #endregion ads

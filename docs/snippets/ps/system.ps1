@@ -1,17 +1,19 @@
 #region help
-# Bekijk de volledige help en voorbeelden van een cmdlet
+# -Full toont beschrijving, alle parameters, voorbeelden en opmerkingen
 Get-Help Get-ChildItem -Full
+# -Examples toont alleen de voorbeelden
 Get-Help Start-MpScan -Examples
 #endregion help
 
 #region modules
-# Laad een lokaal script of module in de huidige sessie
+# Laad een lokaal script of module in de huidige sessie; de functies erin zijn daarna beschikbaar
 Import-Module .\Install-AD.ps1
 #endregion modules
 
 #region history
-# Bekijk commandogeschiedenis (en het pad waar PSReadLine alle sessies opslaat)
+# Commando's van de huidige sessie
 Get-History
+# Pad naar het tekstbestand waarin PSReadLine de commando's van alle sessies bewaart
 (Get-PSReadlineOption).HistorySavePath
 #endregion history
 
@@ -19,6 +21,6 @@ Get-History
 # Voer een Python-script uit
 python caesar.py
 
-# Toon alle mappen in de PATH-omgevingsvariabele overzichtelijk onder elkaar
+# Splits het PATH op de puntkomma (-split) zodat elke map op een eigen regel staat
 $env:PATH -split ';'
 #endregion python

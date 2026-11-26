@@ -1,31 +1,3 @@
-:: #region echo
-:: Toon de actieve systeem- en gebruikers-PATH-variabelen
-echo %PATH%
-
-:: Schrijf tekst naar een nieuw bestand en voeg daarna extra tekst toe
-echo The cow says moo. > apple1\cow.txt
-type apple1\cow.txt >> apple3\manycows.txt
-
-:: Bekijk het lokale Windows hosts-bestand
-type C:\Windows\System32\drivers\etc\hosts
-
-:: Lees lange uitvoer pagina voor pagina
-sc query | more
-:: #endregion echo
-
-:: #region search
-:: Zoek een woord in een specifiek bestand of in alle bestanden (*) in de huidige map
-findstr "moo" notacow.txt
-findstr /i "error" *.log
-
-:: Combineer dir met findstr via pipes en tel het resultaat met find /c
-dir /s /b | findstr apple | findstr .txt | find /c ".txt"
-
-:: Tel lokale groepen (elke regel begint met *) en verborgen shares ($)
-net localgroup | find /c "*"
-net share | find /c "$"
-:: #endregion search
-
 :: #region certutil
 :: Bereken de SHA-256 (of MD5) hash van een verdacht uitvoerbaar bestand
 certutil -hashfile happypuppy.exe SHA256
